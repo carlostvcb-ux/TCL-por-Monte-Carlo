@@ -1,0 +1,537 @@
+---
+title: "Ilustração do Teorema do Limite Central através de simulação de Monte Carlo"
+author:
+- Adriano Nascimento da Paixão, 20180015150
+- Carlos Alberto Alves de Meneses, 201800032
+- Joana D'arc Nunes da Silva, 20180078535
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+
+```{r setup, echo = F, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+set.seed(0) #Fixando uma semente inicial
+```
+
+```{r, echo=FALSE}
+#Função para criar números sequencial em tabelas
+TabelaN = local({
+  i = 0
+  function(x){
+    i <<- i + 1
+    paste('Tabela ', i, ':',x, ".","Fonte: elaboração própria.", sep = '')
+  }
+})
+```
+
+
+
+
+
+**1. Objetivos**
+
+-   Demonstrar o Teorema do Limite Central por meio de metódos computacionais;
+
+-   Gerar números pseudo-aleatórios para amostras de diferentes tamanhos;
+
+-   Utilizar a simulação de Monte Carlo para demostrar a convergência em distribuição.
+
+**2. Objetivo principal**
+
+-   Iliustrar o Teorema do Limite Central através de simulação de Monte Carlo, considerando diferentes tamanhos de amostras e diferentes distribuições de probabilidade.
+
+**3. Introdução**
+
+A ideia de convergência em distribuição ou do que chamamos a distribuição limte é de fundamental importância em Estatística.
+A motivação para tal estudo é a de que de que muitas vezes a distribuição de uma determinada variável aleatória de interesse pode ser dificíl de ser encontrada ou de se trabalhar.
+Porém, supondo que a informação de que dispomos é suficientemente grande, a distribuição de interesse pode muitas vezes ser aproximada por uma distribuição limite conhecida; por exemplo, uma distribuição normal-padrão.
+Essa informação disponível é na maioria das vezes traduzida pelo número total de observações (amostras) sobre o experimento.
+Uma fração significativa dos resultados é consequência do chamado *Teorema Central do Limite*.
+O teorema central do limite pode ser visto como uma informação adicional àquela que é dada pela lei dos grandes números, na seguinte forma.
+Para uma sequência $(X_n)$ de variáveis aleatórias i.i.d. e integráveis de esperança $\mu$, a lei forte dos grandes números diz que a média amostral $\bar{X_n}$ converge quase certamente para $\mu$.
+Sendo assim, a distribuição de $\bar{X_n}$ deve convergir para uma distribuição concentrada em $\mu$.
+O teorema central do limite traz uma informação adicional.
+Ele afirma que, se a variância $\sigma{^2}$ da distribuição comum for finita, a convergência dá-se de tal forma que a distribuição de $\sqrt{n}(\bar{X_n} - \mu)$ pode ser cada vez mais bem aproximada pela distribuição $N(0,\sigma{^2})$.
+Equivalentemente, a distribuição de $\bar{X_n}$ torna-se cada vez mais próxima da distribuição $N(\mu, \frac{\sigma{^2}}{n})$.
+Dessa forma, o teorema central do limite dá uma descrição sobre como a distribuição de $\bar{X_n}$ converge para a distribuição concentrada em $\mu$,(VASCONCELLOS, 2021).
+
+**3. Resultados Fundamentais**
+
+**Definição 3.1.** Seja $(X_n)$ uma sequência de variáveis aleatórias reais e seja $F_n$ a sua função de distribuição de $(X_n)$, para cada n.
+Suponha que exista função de distribuição F tal que $F_n(x) -> F_(x)$ para todo x $\in$ $\Re$ que é ponto de continuidade de F.
+Neste caso, dizemos que a seqência $(X_n)$ converge em distribuição para F.
+
+**Notação:** "$X_n \rightarrow^D F$"
+
+**Teorema 3.1.** [*Teorema Central do Limite clássico*] Seja $(X_n)$ uma sequência de variáveis aleatórias i.i.d. com $E[X_1^2]$ \< $\infty$.
+Suponha $\sigma{^2} = Var(X_1) \neq 0$ e seja $\mu=E(X_1)$.
+Seja $S_n = X_1 + X_2+ .... + X_n$.
+Tem-se
+
+$$ T_n = \frac{S_n - n\mu}{\sigma\sqrt{n}}  \rightarrow^D  N(0,1)$$.
+
+Considere a média amostral $\bar{X_n} = \frac{S_n}{n}$.
+Observe que uma forma equivalente de se enunciar o Teorema 3.1 é
+
+$$\sqrt{n}(\bar X_n - \mu) \rightarrow^D N(0,\sigma{^2})$$, que é muito usada na Inferência Estatística, pois descreve diretamente o comportamento da média amostral como estimador de $\mu$.
+Em outras palavras, podemos trabalhar diretamente com a distribuição normal ao invés de trabalharmos com uma distribuição mais complicada ao termos conhecimento que a mesma converge para uma $N(\mu,\frac {\sigma{^2}}{n})$.
+
+**Exemplo 3.1.** [*Aproximação da binomial pela normal*] Seja $(x_n)$ uma seqência de variáveis aleatórias i.i.d. com distribuição comum Bernoulli de parâmetro p.
+Nesse caso, sabemos que $S_n = X_1+ .... +X_n$ tem distribuição binomial com parâmetros n e p.
+Ainda pelo teorema 3.1, $\frac{(S_n -np)} {\sqrt(np(1-p))} \rightarrow^D N(0,1)$.
+De outra forma, isso significa que, para valores grandes de n, a distribuiçÃo $N(np, np(1-p))$ fornece uma boa aproximação para a distribuição *Binomial(n,p)*.
+Suponha, por exemplo, que queremos a probabilidade de que, em n = 400 lançamentos independentes de uma moeda honesta, o número total de caras não ultrapasse 220.
+O valor procurado é
+
+$$\frac {1} {2^{440}} \sum_{k=0}^{220} {400 \choose k}$$ ,
+
+cuja obtenção númerica é bastante trabalhosa.
+O resultado arredondado para três casas decimais é 0,980.
+Uma aproximação pode ser obtida facilmente usando aqui a distribuição N(200,100).
+Nesse caso calculamos $\phi(220-200/10)= \phi$(2), onde $\phi$ é a função de distribuição para a distribuição N(0,1).
+Essa última aproximação arredondada para três casas decimais é 0,977, que representa uma redução de apenas 0,3% do valor verdadeiro.
+
+```{r, echo=FALSE}
+pnorm(2)
+```
+
+**4. Simulações**
+
+**4.1. Apresentando Aleatoriedade**
+
+Uma parte crítica da modelagem de simulações é o uso de processos aleatórios.
+Um *processo aleatório* é aquele que gera um resultado diferente de acordo com algumas regras cada vez que é executado.
+Nesse trabalho, iremos gerar números pseudo-aleatórios para gerarem amostras que serão utilizadas nas simulações para demonstrar o Teorema Central do Limite (TCL), usando o método de Monte Carlo.
+
+**4.2 Reproduzindo Aleatoriedade**
+
+Como queremos obter os mesmos números aleatórios exatos, iremos inicialmente definir uma *semente aleatória*.
+
+```{r, echo=FALSE}
+set.seed(0)
+```
+
+**4.3. Replicação**
+
+Para usar os métodos de Monte Carlo, precisaremos replicar algum processo aleatório muitas vezes.
+Existem duas maneiras de fazer isso: com *replicate ()* ou com *for ()*, loops.
+Nesse trabalho utilizaremos loop\`s.
+A simulação de Monte Carlo inicia-se com a geração de números pseudo-aleatórios.
+Números pseudo-aleatórios constituem uma sequência de valores que, apesar de serem gerados de maneira determinística, possuem características semelhantes a variáveis aleatórias independentes U(0,1).\
+
+Geradores de números aleatórios são usados em simulação estocástica, amostragem, análise numérica, teste de programas, jogos de azar, tomada de decisões, etc.\
+
+A distribuição U(0,1) fornece a representação probalística básica da aleatoriedade em um computador e os geradores de todas as outras distribuições requerem que uma sequência de variáveis aleatórias U(O,1) seja simulada.
+
+**4.3.1 Exemplo:** Geração de números pseudo-aleatórios para uma distribuição exponencial.
+
+```{r}
+#Programa R demonstrando a geração de
+#n realizações de variáveis aleatórias
+#exponenciais com parâmetro lamb,
+#utilizamos a função *runif()* 
+#para gerarmos números aleatórios
+#uniformes
+
+rexpon <- function(n, lamb=1/3)
+{
+  u <- runif(n, 0, 1) # gera vetor u
+  #(U(0,1))
+  x <- -log(u) / lamb # gera vetor x
+  #com distrib. exp.
+  return(x) # retorna o vetor x
+}
+
+# exemplo
+
+rexpon(20, 1/3)
+```
+
+**4.3.2 TCL:Exemplo utilizando a distribuição exponencial.**
+
+A densidade de uma exponencial com parâmetros $\lambda$ é dada pela expresão: $f_(x) = \lambda \ e^{-\lambda x}$, x$\ge$ 0.
+
+Gerando dados por simulação a partir de uma exponencial com $\lambda$ = $\frac{1}{3}$, para cada um dos seguintes tamanhos n de amostras: 10,20,50,100,1000 e 10000.
+
+
+```{r echo=FALSE}
+tcl.exp <- function(n, N=200,lamb=1/3){
+  
+  medias = numeric(N)
+  
+  for(i in 1:N)
+    
+    medias[i] = mean(rexp(n,lamb)) # argumentos passados na função
+  
+ return(medias) # uso do return para retornar a variável
+  
+}
+
+#Plotando os gráficos
+
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias = tcl.exp(n[i],200,1/3) # armazenando o vetor criado
+  hist(medias, main =paste("n =",n[i]),prob=TRUE) #criando o histograma de probabilidades em vez de contagens
+  lines(density(medias,adjust = 2), lwd = 2, col = "red") #criando a linha da densidade
+}
+``` 
+
+**Resultados**
+
+-   Obtivemos 200 valores da média amostral;
+-   Utilizamos esses 200 valores para construir um histograma;
+
+Os oitos histogramas nos mostram que, à medida que o tamanho n da amostra cresce, a forma do histograma se aproxima cada vez mais de uma curva normal, comprovando o *Teorema Central do Limite.*
+
+**5. Análise Exploratória**
+
+**5.1 Teste da Normalidade**
+
+Utilizaremos o teste de Shapiro-Wilk para verificarmos a normalidade dos dados.
+
+````{r echo=F}
+shapiro.test(medias)
+`````
+**5.2 Plotando o Gráfico**
+
+````{r echo=F}
+qqnorm( medias ,
+        main  =  " Gráfico QQ (QQ Plot) " ,
+        xlab  =  " Quantis Teóricos " ,
+        ylab  =  " Valores da Amostra " ,
+        col  =  " blue " )
+````
+
+Análise: p-value = 0,2379, indica uma probabilidade de que essa variável veio de uma distribuição normal o que é comprovada pela análise gráfica.
+
+**5.3 Estatística descritiva com o pacote *DescTools* **
+
+O pacote *DescTools* foi desenvolvido com o objetivo de fornecer uma análise descritiva de forma muito rápida e completa, permitindo ao analista ganho de tempo nessa tarefa. A principal função no pacote é *Desc* que foi concebida para descrever as variáveis de acordo com sua natureza, produzindo medidas descritivas e uma representação gráfica adequada.
+
+
+```{r echo=FALSE}
+library(DescTools)
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias = tcl.exp(n[i],200,1/3)
+  print(Desc(medias,plotit = T,main=paste("n = ", n[i])))
+  
+}
+``` 
+
+
+Listamos a seguir as saídas que essa função fornece para o caso de variáveis numéricas
+
+* *length*., o comprimento do vetor;
+* *n*., o número de observações;
+* NAs., o número de observações faltantes;
+* *unique*. , o número de observações distintas entre si;
+* 0s. , o número total de valores nulos;
+* *mean*. , a média aritmética do vetor;
+* *meanSE*. , fornece um intervalo de 95% de confiança para a média, com base no erro  padrão da média,;
+* .05, .., .95 percentil de x, iniciando com 5%, 10%, 1_0. quartil, mediana, etc.;
+* *range*. , a amplitude do vetor x;
+* *sd*. ,o desvio-padrão do vetor x;
+* *vcoef*., o coeficiente de variação de x, definido como ;
+* *mad*., o desvio médio absoluto;
+* *IQR*. , a amplitude interquartil, definida por 3^0. quartil - 1ˆ0. quartil;
+* *skew*., o coeficiente de assimetria do vetor x;
+* *kurt*., o coeficiente de curtose do vetor x;
+* *lowest*., os cinco menores valores do vetor;
+* *highest*., os cinco maiores valores do vetor.
+
+
+A tabela a seguir expõem as principais métricas estatísticas da distribuição Exponencial geradas:
+
+
+```{r  echo=FALSE}
+
+tab = data.frame(y = c(3.104841, 3.093052,  2.968914,3.024341,3.007109, 2.998938 ), z = c( 1.002312, 0.705410, 0.421433, 0.275338,  0.101891,0.032106), m = c(2.931093, 3.053585,2.940700,3.024602,3.005270,2.999341), k = c(0.2217635,-0.049957,-0.094424,-0.302847,0.217103,0.127774)) 
+rownames(tab) = c(10,20,50,100,1000,10000)
+colnames(tab)= c("Médias", "sd","Mediana","Curtose")
+knitr::kable(tab)
+```
+
+
+
+**6. TCL:Exemplo utilizando a distribuição Uniforme.**
+
+
+**Definição 6.1** Uma variável aleatória X tomando um número finito de valores com iguais probabilidades diz-se que tem uma *distribuição uniforme*.
+
+A **distribuição uniforme** é a mais simples para variáveis aleatórias continuas, sendo utilizada para modelar a ocorrência de eventos cuja probabilidade é constante em intervalos de mesma amplitude.
+Uma variável aleatória X tem distribuição uniforme no intervalo $[a,b]$, denotada por $X ~ U[a,b]$, se sua função densidade de probabildade for dada por:
+
+$f(x)$ = $\Bigg\{$ $\frac{1}{(b - a)}$, se a $\le$ x $\ge$ b
+
+0, caso contrário.
+
+**6.2 TCL: Códigos no R para a elaboração dos gráficos com as simulações - Uniforme**
+
+```{r echo=FALSE}
+tcl.unif = function(n, N=100, yl = c(0, .4)){
+  medias.unif = numeric(N)
+  for(i in 1:N)
+  medias.unif[i] = mean(runif(n, 3-3*sqrt(3), 3+3*sqrt(3)))
+  return(medias.unif) # uso do return para retornar a variável
+
+}
+
+#Plotando os gráficos
+
+par(mfrow=c(3,3), mai=c(.3,.4,.1,.1))
+
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.unif = tcl.unif(n[i],100) # armazenando o vetor criado
+  hist(medias.unif, main =paste("n =",n[i]),prob=TRUE) #criando o histograma de probabilidades em vez de contagens
+  lines(density(medias.unif,adjust = 2), lwd = 2, col = "red") #criando a linha da densidade
+}
+```
+
+Os seis histogramas nos mostram que, à medida que o tamanho n da amostra cresce, a forma do histograma se aproxima cada vez mais de uma curva normal, comprovando o *Teorema Central do Limite.*
+
+**6.3 Teste da Normalidade**
+
+Utilizaremos o teste de Shapiro-Wilk para verificarmos a normalidade dos dados.
+
+```{r echo=FALSE}
+shapiro.test(medias.unif)
+```
+
+
+**6.4 Plotando o Gráfico**
+
+```{r echo=FALSE}
+qqnorm( medias ,
+        main  =  " Gráfico QQ (QQ Plot) " ,
+        xlab  =  " Quantis Teóricos " ,
+        ylab  =  " Valores da Amostra " ,
+        col  =  " blue " )
+```
+
+Análise: p-value = 0,06896, indica uma probabilidade de que essa variável veio de uma distribuição normal o que é comprovada pela análise gráfica.
+
+**6.5 Estatística descritiva com o pacote *DescTools* **
+
+
+```{r echo=FALSE}
+library(DescTools)
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.unif = tcl.unif(n[i],100)
+  print(Desc(medias.unif,plotit = T,main=paste("n = ", n[i])))
+ }
+```
+
+A tabela a seguir expõem as principais métricas estatísticas da distribuição Uniforme geradas:
+
+
+```{r echo=FALSE}
+tab = data.frame(y = c(3.0282379,2.977908,2.992624,2.9821556,2.999369,2.998075), z = c(0.9168851,0.620392,0.466740,0.298991,0.092470,0.027888), m = c(3.0282379,2.945761,3.014753,2.951018,3.003287,2.998272), k = c(0.2673881,0.308399,-0.354584,-0.407928,0.045698,0.026326))
+rownames(tab) = c(10,20,50,100,1000,10000)
+colnames(tab)= c("Médias", "sd","Mediana","crtose")
+knitr::kable(tab)
+```
+
+
+
+
+**7. TCL:Exemplo utilizando a distribuição qui-quadrado.**
+
+**Definição 7.1** Uma variável aleatória contínua X tem *distribuição qui-quadrado* com *v* graus de liberdade, denotada por X $\sim$ $X^2_v$, se sua função densidade de probabilidade for dada por:
+
+$f(x)$ = $\Bigg\{$ $\frac{1}{2^(v/2) \Gamma_(v/2)}$ $x^{(v/2)-1}$ $e^{-x/2}$
+ 
+0, se x < 0
+
+**7.1 TCL: Códigos no R para a elaboração dos gráficos com as simulações - qui-quadrado**
+
+```{r echo=FALSE}
+tcl.qui = function(n, N=100, df=6){
+  medias.qui = numeric(N)
+  for(i in 1:N)
+  medias.qui[i] = mean(rchisq(n,df))
+  return(medias.qui) # uso do return para retornar a variável
+
+}
+
+#Plotando os gráficos
+
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.qui = tcl.qui(n[i],100) # armazenando o vetor criado
+  hist(medias.qui, main =paste("n =",n[i]),prob=TRUE) #criando o histograma de probabilidades em vez de contagens
+  lines(density(medias.qui,adjust = 2), lwd = 2, col = "red") #criando a linha da densidade
+}
+```
+
+Os seis histogramas nos mostram que, à medida que o tamanho n da amostra cresce, a forma do histograma se aproxima cada vez mais de uma curva normal, comprovando o *Teorema Central do Limite.*
+
+**7.2 Teste da Normalidade**
+
+Utilizaremos o teste de Shapiro-Wilk para verificarmos a normalidade dos dados.
+
+```{r echo=FALSE}
+shapiro.test(medias.qui)
+```
+**7.3 Plotando o Gráfico**
+
+```{r echo=FALSE}
+qqnorm( medias.qui ,
+        main  =  " Gráfico QQ (QQ Plot) " ,
+        xlab  =  " Quantis Teóricos " ,
+        ylab  =  " Valores da Amostra " ,
+        col  =  " blue " )
+```
+
+Análise: p-value = 0,9194, indica uma probabilidade de que essa variável veio de uma distribuição normal o que é comprovada pela análise gráfica.
+
+
+**7.4 Estatística descritiva com o pacote *DescTools* **
+
+
+```{r echo=FALSE}
+library(DescTools)
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.qui = tcl.qui(n[i],100)
+  print(Desc(medias.qui,plotit = T,main=paste("n = ", n[i])))
+ }
+```
+
+
+A tabela a seguir expõem as principais métricas estatísticas da distribuição qui-quadrado geradas:
+
+
+```{r echo=FALSE}
+tab = data.frame(y = c(6.180589,6.143925,6.045567,6.004604,6.002410,5.996847), z = c( 1.206185,0.823468,0.512984,0.368236,0.104622,0.035369), m = c(6.058714,5.969968,6.056047,6.014391,5.994127,5.995514), k = c(0.368256,0.113770,-0.017459,-0.431943,0.139202,-0.307291))
+rownames(tab) = c(10,20,50,100,1000,10000)
+colnames(tab)= c("Médias", "sd", "Mediana","Curtose")
+knitr::kable(tab)
+```
+
+
+**8. TCL:Exemplo utilizando a distribuição Gama.**
+
+**8.1 Definição:** A variável aleatória X tem distribuição Gama, se sua densidade for dada por: 
+
+$f(x)$ = $\frac{\beta}{\Gamma_(\alpha)}$ $x{^(\alpha -1)}$ $e^{-\beta x}$, x $\ge$ 0,
+
+sendo $\alpha$ e $\beta$ dois parâmetros positivos e $\Gamma_(\alpha)$ sendo a função matemática Gama, definida por
+
+$\Gamma_(\alpha)$ = $\int_{0}^{\infty}$ $x^{\alpha-1}$ $e^{-x}\, dx$, $\alpha$ > 0.
+
+**Notação:** X $\sim$ Gama($\alpha$,$\beta$).
+
+**8.2 TCL: Códigos no R para a elaboração dos gráficos com as simulações - Gama**
+
+
+```{r echo=FALSE}
+tcl.gam <- function(n, N=200, shape = 5){
+  media.gam = numeric(N)
+  for (i in 1:N)
+    media.gam[i] <- mean(rgamma(n, shape))
+  return(media.gam)
+}
+
+#Plotando os gráficos
+
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.gam = tcl.gam(n[i]) # armazenando o vetor criado
+  hist(medias.gam, main =paste("n =",n[i]),prob=TRUE) #criando o histograma de probabilidades em vez de contagens
+  lines(density(medias.gam,adjust = 2), lwd = 2, col = "red") #criando a linha da densidade  
+ } 
+```
+
+Os seis histogramas nos mostram que, à medida que o tamanho n da amostra cresce, a forma do histograma se aproxima cada vez mais de uma curva normal, comprovando o *Teorema Central do Limite.*
+
+**8.3 Teste da Normalidade**
+
+Utilizaremos o teste de Shapiro-Wilk para verificarmos a normalidade dos dados.
+
+
+```{r echo=FALSE}
+shapiro.test(medias.gam)
+```
+
+**8.4 Plotando o Gráfico**
+
+
+```{r echo=FALSE}
+qqnorm( medias.gam ,
+        main  =  " Gráfico QQ (QQ Plot) " ,
+        xlab  =  " Quantis Teóricos " ,
+        ylab  =  " Valores da Amostra " ,
+        col  =  " blue " )
+```
+
+Análise: p-value = 0,7975, indica uma probabilidade de que essa variável veio de uma distribuição normal o que é comprovada pela análise gráfica.
+
+
+**8.5 Estatística descritiva com o pacote *DescTools* **
+
+
+```{r echo=FALSE}
+library(DescTools)
+par(mfrow=c(3,3), mai=c(.8,.7,.1,.1))
+n <- c(10,20,50,100,1000,10000)
+for(i in 1:6){
+  medias.gam = tcl.gam(n[i])
+  print(Desc(medias.gam,plotit = T,main=paste("n = ", n[i])))
+ }
+```
+
+A tabela a seguir expõem as principais métricas estatísticas da distribuição Gama geradas:
+
+```{r echo=FALSE}
+tab = data.frame(y = c(4.991224,5.048975,4.972802,5.006404,4.991335,4.995676 ), z = c(0.784993,0.548580,0.322743,0.215888,0.060927,0.024263), m = c(4.965807,5.046407,4.989514,5.014161,4.994427,4.999221), k = c(-0.244905,0.132389,0.330556,0.1153516,0.485402,0.160981))
+rownames(tab) = c(10,20,50,100,1000,10000)
+colnames(tab)= c("Médias", "sd", "Mediana","Curtose")
+knitr::kable(tab)
+```
+
+
+
+
+
+**Conclusão**
+
+Ao utilizarmos amostras, nosso objetivo final é fazer **inferência a respeito dos reais parâmetros da população**. Para isso, usamos ferramentas como intervalos de confiança e teste de hipóteses que partem da suposição da normalidade dos dados.
+Desse modo, mesmo que os nossos dados sejam de uma população com distribuição desconhecida ou que não seja normalmente distribuída, ainda assim poderemos fazer tais análises uma vez que o Teorema Central do Limite é verdadeiro, (MACIEL, 2022).
+De forma geral, **quanto maior for a amostra, mais próxima da normal a distribuição amostral das médias será.**
+
+
+
+
+
+**Referências**
+
+ALCOFORADO, Luciane Ferreira. Utilizando a Linguagem R: conceitos, manipulação, visualização, modelagem e elaboração de relatórios. Rio de Janeiro: Alta Books, 2021. 377 p.
+
+MACIEL, Prof. Fernanda. Teorema Central do Limite. 2022. Disponível em: https://blog.proffernandamaciel.com.br/teorema_central_limite/. Acesso em: 30 out. 2022.
+
+R Core Team (2021). R: A language and
+  environment for statistical computing. R
+  Foundation for Statistical Computing,
+  Vienna, Austria. URL
+  https://www.R-project.org/.
+
+VASCONCELLOS, Klaus Leite Pinto. Fundamentos para a Estatística de Convergência de Variáveis Aleatórias. Rio de Janeiro: Sbm, 2021. 380 p. (Coleção Matemática Aplicada; 05).
+
